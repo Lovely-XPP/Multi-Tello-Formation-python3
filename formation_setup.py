@@ -1,4 +1,8 @@
 import socket
+import sys
+
+wifi_name = ""
+wifi_pwd = ""
 
 def set_ap(ssid, password):
     '''
@@ -21,8 +25,10 @@ def set_ap(ssid, password):
     response, ip = my_socket.recvfrom(100)
     print('from %s: %s' % (ip, response))
 
+
 # example of setting Tello into command mode
 # only works if server is connected to Tello Wi-Fi
-set_ap('micro322_5G', '123456789')
-
-
+try:
+    set_ap(sys.argv[1], sys.argv[2])
+except IndexError:
+    set_ap(wifi_name, wifi_pwd)

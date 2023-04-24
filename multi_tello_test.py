@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys
+import os, sys
 import time
 from tello_manager import *
 import queue
@@ -7,9 +7,9 @@ import time
 import os
 import binascii
 import importlib
-import sys
 importlib.reload(sys)
 
+file = os.path.join(sys.path[0], 'ip.txt')
 
 def create_execution_pools(num):
     pools = []
@@ -69,7 +69,10 @@ manager = Tello_Manager()
 start_time = str(time.strftime("%a-%d-%b-%Y_%H-%M-%S-%Z", time.localtime(time.time())))
 
 try:
-    file_name = sys.argv[1]
+    try:
+        file_name = sys.argv[1]
+    except IndexError:
+        file_name = file
     f = open(file_name, "r")
     commands = f.readlines()
 
@@ -138,15 +141,15 @@ try:
 
                 for tello_log in manager.get_log().values():
                     battery = int(tello_log[-1].response)
-                    print ('[Battery_Show]show drone battery: %d  ip:%s\n' % (battery,tello_log[-1].drone_ip))
+                    print ('[Battery_Show] show drone battery: %d  ip:%s\n' % (battery,tello_log[-1].drone_ip))
                     if battery < threshold:
-                        print('[Battery_Low]IP:%s  Battery < Threshold. Exiting...\n'%tello_log[-1].drone_ip)
+                        print('[Battery_Low] IP:%s  Battery < Threshold. Exiting...\n'%tello_log[-1].drone_ip)
                         save_log(manager)
                         exit(0)
-                print ('[Battery_Enough]Pass battery check\n')
+                print ('[Battery_Enough] Pass battery check\n')
             elif 'delay' in command:
                 delay_time = float(command.partition('delay')[2])
-                print ('[Delay_Seconds]Start Delay for %f second\n' %delay_time)
+                print ('[Delay_Seconds] Start Delay for %f second\n' %delay_time)
                 time.sleep(delay_time)  
             elif 'correct_ip' in command:
                 for queue in execution_pools:
@@ -167,11 +170,11 @@ try:
                 drone_id = int(command.partition('=')[0])
                 drone_sn = command.partition('=')[2]
                 id_sn_dict[drone_id-1] = drone_sn
-                print ('[IP_SN_FID]:Tello_IP:%s------Tello_SN:%s------Tello_fid:%d\n'%(sn_ip_dict[drone_sn],drone_sn,drone_id))
+                print ('[IP_SN_FID] Tello_IP:%s------Tello_SN:%s------Tello_fid:%d\n'%(sn_ip_dict[drone_sn],drone_sn,drone_id))
                 #print id_sn_dict[drone_id]
             elif 'sync' in command:
                 timeout = float(command.partition('sync')[2])
-                print('[Sync_And_Waiting]Sync for %s seconds \n' % timeout)
+                print('[Sync_And_Waiting] Sync for %s seconds \n' % timeout)
                 time.sleep(1)
                 try:
                     start = time.time()
@@ -181,15 +184,15 @@ try:
                         if check_timeout(start, now, timeout):
                             raise RuntimeError
 
-                    print('[All_Commands_Send]All queue empty and all command send,continue\n')
+                    print('[All_Commands_Send] All queue empty and all command send,continue\n')
                     # wait till all responses are received
                     while not all_got_response(manager):
                         now = time.time()
                         if check_timeout(start, now, timeout):
                             raise RuntimeError
-                    print('[All_Responses_Get]All response got, continue\n')
+                    print('[All_Responses_Get] All response got, continue\n')
                 except RuntimeError:
-                    print('[Quit_Sync]Fail Sync:Timeout exceeded, continue...\n')
+                    print('[Quit_Sync] Fail Sync:Timeout exceeded, continue...\n')
 
 
     # wait till all commands are executed
@@ -205,7 +208,7 @@ try:
     save_log(manager)
 
 except KeyboardInterrupt:
-    print('[Quit_ALL]Multi_Tello_Task got exception. Sending land to all drones...\n')
+    print('[Quit_ALL] Multi_Tello_Task got exception. Sending land to all drones...\n')
     for ip in manager.tello_ip_list:
         manager.socket.sendto('land'.encode('utf-8'), (ip, 8889))
 

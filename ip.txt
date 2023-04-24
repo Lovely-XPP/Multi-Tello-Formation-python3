@@ -1,3 +1,2 @@
 scan 1
 correct_ip
-delay 20
