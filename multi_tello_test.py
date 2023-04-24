@@ -2,17 +2,19 @@
 import sys
 import time
 from tello_manager import *
-import Queue
+import queue
 import time
 import os
 import binascii
-reload(sys)
-sys.setdefaultencoding('utf-8')
+import importlib
+import sys
+importlib.reload(sys)
+
 
 def create_execution_pools(num):
     pools = []
     for x in range(num):
-        execution_pool = Queue.Queue()
+        execution_pool = queue.Queue()
         pools.append(execution_pool)
     return pools
 
@@ -43,7 +45,7 @@ def save_log(manager):
     if not os.path.exists('log'):
         try:
             os.makedirs('log')
-        except Exception, e:
+        except Exception:
             pass
 
     out = open('log/' + start_time + '.txt', 'w')
@@ -169,7 +171,7 @@ try:
                 #print id_sn_dict[drone_id]
             elif 'sync' in command:
                 timeout = float(command.partition('sync')[2])
-                print '[Sync_And_Waiting]Sync for %s seconds \n' % timeout
+                print('[Sync_And_Waiting]Sync for %s seconds \n' % timeout)
                 time.sleep(1)
                 try:
                     start = time.time()
@@ -179,15 +181,15 @@ try:
                         if check_timeout(start, now, timeout):
                             raise RuntimeError
 
-                    print '[All_Commands_Send]All queue empty and all command send,continue\n'
+                    print('[All_Commands_Send]All queue empty and all command send,continue\n')
                     # wait till all responses are received
                     while not all_got_response(manager):
                         now = time.time()
                         if check_timeout(start, now, timeout):
                             raise RuntimeError
-                    print '[All_Responses_Get]All response got, continue\n'
+                    print('[All_Responses_Get]All response got, continue\n')
                 except RuntimeError:
-                    print '[Quit_Sync]Fail Sync:Timeout exceeded, continue...\n'
+                    print('[Quit_Sync]Fail Sync:Timeout exceeded, continue...\n')
 
 
     # wait till all commands are executed
@@ -203,7 +205,7 @@ try:
     save_log(manager)
 
 except KeyboardInterrupt:
-    print '[Quit_ALL]Multi_Tello_Task got exception. Sending land to all drones...\n'
+    print('[Quit_ALL]Multi_Tello_Task got exception. Sending land to all drones...\n')
     for ip in manager.tello_ip_list:
         manager.socket.sendto('land'.encode('utf-8'), (ip, 8889))
 
